@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth-wrapper">
+  <div class="card auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">🌾</div>
+      <h2>Create New Account</h2>
+      <p class="subtitle">Join Project Golden Rice to manage students and analytics</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('signup') }}" class="auth-form">
+      <div class="form-group">
+        <label for="username">Choose Username</label>
+        <input 
+          type="text" 
+          id="username" 
+          name="username" 
+          placeholder="e.g. shru_admin or placement_officer" 
+          required 
+          autofocus
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="email">Institutional / Academic Email</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          placeholder="officer@college.edu" 
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="role">Designation / Role</label>
+        <select id="role" name="role" required>
+          <option value="Placement Officer">Placement Officer</option>
+          <option value="Department Admin">Department Admin</option>
+          <option value="Faculty Coordinator">Faculty Coordinator</option>
+          <option value="Institutional Auditor">Institutional Auditor</option>
+        </select>
+      </div>
+
+      <div class="grid-form" style="grid-template-columns: 1fr 1fr; margin-bottom: 0;">
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            placeholder="Min 6 characters" 
+            required 
+            minlength="6"
+          >
+        </div>
+        <div class="form-group">
+          <label for="confirm_password">Confirm Password</label>
+          <input 
+            type="password" 
+            id="confirm_password" 
+            name="confirm_password" 
+            placeholder="Repeat password" 
+            required 
+            minlength="6"
+          >
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-golden btn-block" style="margin-top: 1.5rem;">Create Account & Sign In →</button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Already have an account? <a href="{{ url_for('login') }}" class="btn-text">Sign in here →</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

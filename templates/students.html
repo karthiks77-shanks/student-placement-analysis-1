@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header-section">
+  <div>
+    <h1>Student Records & Eligibility Registry</h1>
+    <p class="subtitle">Enroll candidates, monitor academic standing, and evaluate strict placement eligibility parameters.</p>
+  </div>
+  <div class="header-actions">
+    <button type="button" class="btn btn-primary" onclick="document.getElementById('studentFormCard').scrollIntoView({behavior: 'smooth'})">+ New Student</button>
+  </div>
+</div>
+
+<!-- Student Registration Form with Live Eligibility Calculator -->
+<div id="studentFormCard" class="card form-card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+    <h3>Register Candidate</h3>
+    <div id="liveEligibilityBadge" class="badge badge-success" style="font-size: 0.8rem; padding: 0.35rem 0.85rem;">
+      <span id="eligibilityIcon">✓</span> <span id="eligibilityText">Eligibility Status: Eligible (Default)</span>
+    </div>
+  </div>
+  <p class="form-hint">Institutional Eligibility Rule: Cumulative CGPA ≥ 6.00 and 0 active backlog arrears.</p>
+
+  <form method="POST" class="grid-form">
+    <div>
+      <label>Roll Number / Enrollment ID</label>
+      <input type="text" name="roll_number" placeholder="e.g. 2024CS101" required>
+    </div>
+    <div>
+      <label>Full Student Name</label>
+      <input type="text" name="full_name" placeholder="e.g. Aarav Sharma" required>
+    </div>
+    <div>
+      <label>Academic Department</label>
+      <select name="department" required>
+        <option value="Computer Science">Computer Science</option>
+        <option value="Information Technology">Information Technology</option>
+        <option value="Electronics & Comm">Electronics & Comm</option>
+        <option value="Mechanical">Mechanical</option>
+        <option value="Civil">Civil</option>
+        <option value="Electrical">Electrical</option>
+      </select>
+    </div>
+    <div>
+      <label>Graduation Cohort</label>
+      <input type="number" name="graduation_year" value="2024" min="2020" max="2030" required>
+    </div>
+    <div>
+      <label>Cumulative CGPA</label>
+      <input type="number" id="cgpaInput" step="0.01" min="0" max="10" name="cgpa" placeholder="e.g. 8.45" value="8.00" required oninput="evaluateEligibility()">
+    </div>
+    <div>
+      <label>Active Backlogs</label>
+      <input type="number" id="backlogsInput" name="active_backlogs" value="0" min="0" required oninput="evaluateEligibility()">
+    </div>
+    <div class="form-btn-col">
+      <button type="submit" class="btn btn-primary">+ Save & Enroll Candidate</button>
+    </div>
+  </form>
+</div>
+
+<!-- Table Card with Live Search & Filter -->
+<div class="card table-card">
+  <div class="card-header-flex" style="flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h3>Registered Student Registry</h3>
+      <p class="subtitle" style="font-size: 0.85rem; margin-top: 0.15rem;">Showing <span id="visibleCount">{{ students|length }}</span> of {{ students|length }} total records</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+      <div style="position: relative;">
+        <input 
+          type="text" 
+          id="studentSearchInput" 
+          placeholder="🔍 Instant search by name, roll, dept..." 
+          style="padding: 0.5rem 0.95rem; font-size: 0.875rem; border-radius: 9999px; border: 1.5px solid var(--border-color); width: 260px; outline: none;"
+          onkeyup="filterStudentTable()"
+        >
+      </div>
+      <select id="deptFilterSelect" onchange="filterStudentTable()" style="padding: 0.5rem 0.85rem; font-size: 0.875rem; border-radius: 9999px; border: 1.5px solid var(--border-color);">
+        <option value="">All Departments</option>
+        <option value="Computer Science">Computer Science</option>
+        <option value="Information Technology">Information Technology</option>
+        <option value="Electronics & Comm">Electronics & Comm</option>
+        <option value="Mechanical">Mechanical</option>
+        <option value="Civil">Civil</option>
+        <option value="Electrical">Electrical</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table" id="studentsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Roll No</th>
+          <th>Full Name</th>
+          <th>Department</th>
+          <th>Year</th>
+          <th>CGPA</th>
+          <th>Backlogs</th>
+          <th>Placement Eligibility</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        {% set sid = s['student_id'] if s is mapping else s[0] %}
+        {% set roll = s['roll_number'] if s is mapping else s[1] %}
+        {% set name = s['full_name'] if s is mapping else s[2] %}
+        {% set dept = s['department'] if s is mapping else s[3] %}
+        {% set year = s['graduation_year'] if s is mapping else s[4] %}
+        {% set cgpa = s['cgpa'] if s is mapping else s[5] %}
+        {% set backlogs = s['active_backlogs'] if s is mapping else s[6] %}
+        {% set elig = s['is_eligible'] if s is mapping else s[7] %}
+        <tr class="student-row" data-dept="{{ dept }}" data-search="{{ roll|lower }} {{ name|lower }} {{ dept|lower }}">
+          <td>#{{ sid }}</td>
+          <td><code>{{ roll }}</code></td>
+          <td><strong>{{ name }}</strong></td>
+          <td>{{ dept }}</td>
+          <td><span class="badge badge-info">{{ year }}</span></td>
+          <td><strong>{{ "%.2f"|format(cgpa) }}</strong></td>
+          <td>
+            {% if backlogs == 0 %}
+              <span style="color: var(--success); font-weight: 700;">0</span>
+            {% else %}
+              <span style="color: var(--danger); font-weight: 700;">{{ backlogs }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge {{ 'badge-success' if elig else 'badge-danger' }}">
+              {{ '✓ Eligible' if elig else '✗ Ineligible' }}
+            </span>
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('delete_student', student_id=sid) }}" onsubmit="return confirm('Delete student {{ roll }}? Associated placement offers will also be removed.');">
+              <button type="submit" class="btn-delete">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="9" class="text-center text-muted" style="padding: 2rem;">No students recorded yet. Register one above.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function evaluateEligibility() {
+  const cgpa = parseFloat(document.getElementById('cgpaInput').value) || 0;
+  const backlogs = parseInt(document.getElementById('backlogsInput').value) || 0;
+  const badge = document.getElementById('liveEligibilityBadge');
+  const icon = document.getElementById('eligibilityIcon');
+  const text = document.getElementById('eligibilityText');
+
+  if (cgpa >= 6.00 && backlogs === 0) {
+    badge.className = 'badge badge-success';
+    icon.textContent = '✓';
+    text.textContent = 'Eligibility: Eligible (Meets Criteria)';
+  } else {
+    badge.className = 'badge badge-danger';
+    icon.textContent = '✗';
+    const reason = (cgpa < 6.00 && backlogs > 0) ? 'CGPA < 6.0 & Backlogs > 0' : (cgpa < 6.00 ? 'CGPA < 6.0' : 'Active Backlogs > 0');
+    text.textContent = 'Eligibility: Ineligible (' + reason + ')';
+  }
+}
+
+function filterStudentTable() {
+  const query = document.getElementById('studentSearchInput').value.toLowerCase().trim();
+  const deptFilter = document.getElementById('deptFilterSelect').value.toLowerCase();
+  const rows = document.querySelectorAll('.student-row');
+  let visible = 0;
+
+  rows.forEach(row => {
+    const searchData = row.getAttribute('data-search') || '';
+    const dept = (row.getAttribute('data-dept') || '').toLowerCase();
+    const matchesQuery = !query || searchData.includes(query);
+    const matchesDept = !deptFilter || dept === deptFilter;
+
+    if (matchesQuery && matchesDept) {
+      row.style.display = '';
+      visible++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  const countElem = document.getElementById('visibleCount');
+  if (countElem) countElem.textContent = visible;
+}
+</script>
+{% endblock %}

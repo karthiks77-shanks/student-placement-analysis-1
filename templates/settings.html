@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header-section">
+  <div>
+    <h1>Database Connection & Configuration</h1>
+    <p class="subtitle">Switch between MySQL Server and local SQLite database engine seamlessly.</p>
+  </div>
+</div>
+
+<div class="card form-card">
+  <h3>Configure Database Storage</h3>
+  <form method="POST" class="settings-form">
+    <div class="form-group">
+      <label>Database Engine</label>
+      <div class="radio-group">
+        <label>
+          <input type="radio" name="db_type" value="sqlite" {{ 'checked' if current_config.db_type == 'sqlite' else '' }} onchange="toggleMysqlFields()"> SQLite (Self-Contained Local File)
+        </label>
+        <label>
+          <input type="radio" name="db_type" value="mysql" {{ 'checked' if current_config.db_type == 'mysql' else '' }} onchange="toggleMysqlFields()"> MySQL Server (Persistent Enterprise RDBMS)
+        </label>
+      </div>
+    </div>
+
+    <div id="mysql-settings" style="{{ 'display:block;' if current_config.db_type == 'mysql' else 'display:none;' }}">
+      <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid #e2e8f0;">
+      <h4>MySQL Parameters</h4>
+      <div class="grid-form" style="margin-top: 1rem;">
+        <div>
+          <label>Host</label>
+          <input type="text" name="mysql_host" value="{{ current_config.mysql_host }}">
+        </div>
+        <div>
+          <label>Port</label>
+          <input type="number" name="mysql_port" value="{{ current_config.mysql_port }}">
+        </div>
+        <div>
+          <label>Username</label>
+          <input type="text" name="mysql_user" value="{{ current_config.mysql_user }}">
+        </div>
+        <div>
+          <label>Password</label>
+          <input type="password" name="mysql_pass" placeholder="Enter MySQL root password">
+        </div>
+        <div>
+          <label>Database Name</label>
+          <input type="text" name="mysql_db" value="{{ current_config.mysql_db }}">
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 2rem;">
+      <button type="submit" class="btn btn-primary">Test & Apply Configuration</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function toggleMysqlFields() {
+  const isMysql = document.querySelector('input[name="db_type"][value="mysql"]').checked;
+  document.getElementById('mysql-settings').style.display = isMysql ? 'block' : 'none';
+}
+</script>
+{% endblock %}

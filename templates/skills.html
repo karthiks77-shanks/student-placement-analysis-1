@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header-section">
+  <div>
+    <h1>Skills Inventory & Profile Tagging</h1>
+    <p class="subtitle">Track technical competencies and analyze employer skill demand.</p>
+  </div>
+</div>
+
+<div class="two-col-grid">
+  <!-- Register Skill Form -->
+  <div class="card form-card">
+    <h3>Add Technical Skill</h3>
+    <form method="POST">
+      <input type="hidden" name="action" value="add_skill">
+      <div class="form-group">
+        <label>Skill Name</label>
+        <input type="text" name="skill_name" placeholder="e.g. Python, Docker, Kubernetes" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">+ Add Skill</button>
+    </form>
+
+    <h4 style="margin-top: 2rem; margin-bottom: 0.5rem;">Registered Skills ({{ skills|length }})</h4>
+    <div class="skills-tag-cloud">
+      {% for sk in skills %}
+      {% set sname = sk['skill_name'] if sk is mapping else sk[1] %}
+      <span class="skill-tag">{{ sname }}</span>
+      {% else %}
+      <p class="text-muted">No skills in catalog.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Tag Student with Skill Form -->
+  <div class="card form-card">
+    <h3>Tag Skill to Student</h3>
+    <form method="POST">
+      <input type="hidden" name="action" value="tag_skill">
+      <div class="form-group">
+        <label>Select Student</label>
+        <select name="student_id" required>
+          <option value="">-- Choose Candidate --</option>
+          {% for s in students %}
+            {% set sid = s['student_id'] if s is mapping else s[0] %}
+            {% set roll = s['roll_number'] if s is mapping else s[1] %}
+            {% set name = s['full_name'] if s is mapping else s[2] %}
+            <option value="{{ sid }}">{{ roll }} - {{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group" style="margin-top: 1rem;">
+        <label>Select Skill</label>
+        <select name="skill_id" required>
+          <option value="">-- Choose Skill --</option>
+          {% for sk in skills %}
+            {% set skid = sk['skill_id'] if sk is mapping else sk[0] %}
+            {% set sname = sk['skill_name'] if sk is mapping else sk[1] %}
+            <option value="{{ skid }}">{{ sname }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem;">Tag Skill</button>
+    </form>
+  </div>
+</div>
+
+<div class="card table-card" style="margin-top: 1.5rem;">
+  <h3>Active Candidate Competencies</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Roll Number</th>
+          <th>Student Name</th>
+          <th>Acquired Skill</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in mappings %}
+        {% set roll = m['roll_number'] if m is mapping else m[0] %}
+        {% set name = m['full_name'] if m is mapping else m[1] %}
+        {% set sk = m['skill_name'] if m is mapping else m[2] %}
+        <tr>
+          <td><code>{{ roll }}</code></td>
+          <td><strong>{{ name }}</strong></td>
+          <td><span class="skill-tag">{{ sk }}</span></td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="3" class="text-center text-muted">No student skills tagged yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

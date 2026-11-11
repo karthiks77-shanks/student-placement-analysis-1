@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth-wrapper">
+  <div class="card auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">🌾</div>
+      <h2>Welcome Back</h2>
+      <p class="subtitle">Sign in to your Project Golden Rice intelligence portal</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('login', next=request.args.get('next')) }}" class="auth-form">
+      <div class="form-group">
+        <label for="login_id">Username or Official Email</label>
+        <input 
+          type="text" 
+          id="login_id" 
+          name="login_id" 
+          value="{{ remembered_login_id }}" 
+          placeholder="e.g. admin or officer@college.edu" 
+          required 
+          autofocus
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          placeholder="••••••••" 
+          required
+        >
+      </div>
+
+      <div class="auth-options">
+        <label class="remember-checkbox">
+          <input 
+            type="checkbox" 
+            name="remember_me" 
+            value="1" 
+            {{ 'checked' if remembered_login_id else '' }}
+          >
+          <span>Keep me logged in (30 days)</span>
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Sign In to Dashboard →</button>
+    </form>
+
+    <div class="auth-demo-hint">
+      <span class="kpi-badge badge-warning">Demo Access</span>
+      <p>Default credentials: <strong>admin</strong> / <strong>admin123</strong></p>
+    </div>
+
+    <div class="auth-footer">
+      <p>Don't have an account? <a href="{{ url_for('signup') }}" class="btn-text">Create account →</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

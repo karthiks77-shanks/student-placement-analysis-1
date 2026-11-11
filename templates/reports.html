@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header-section">
+  <div>
+    <h1>Departmental & Cohort Reports</h1>
+    <p class="subtitle">Cohort-level summaries protecting student privacy while delivering transparent outcome metrics.</p>
+  </div>
+</div>
+
+<!-- Methodology Clarification Notice -->
+<div class="card methodology-card">
+  <h4>📋 Methodology & Computation Documentation</h4>
+  <ul>
+    <li><strong>Eligibility Denominator:</strong> Strictly includes students with CGPA ≥ 6.00, 0 active backlogs, and enrolled for campus placement.</li>
+    <li><strong>Multiple Offers De-duplication:</strong> A candidate holding multiple offers is counted <em>exactly once</em> in the Placed Count.</li>
+    <li><strong>Package Metric (LPA):</strong> All compensation numbers are normalized to Lakhs Per Annum.</li>
+    <li><strong>Privacy Guardrail:</strong> Individual names and test scores are suppressed in this reporting view.</li>
+  </ul>
+</div>
+
+<div class="card table-card">
+  <div class="card-header-flex">
+    <h3>Cohort Performance Matrix</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Department</th>
+          <th>Graduation Year</th>
+          <th>Eligible Candidates</th>
+          <th>Placed Candidates</th>
+          <th>Placement Rate (%)</th>
+          <th>Average Package (LPA)</th>
+          <th>Highest Package (LPA)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in stats %}
+        <tr>
+          <td><strong>{{ s.department }}</strong></td>
+          <td><span class="badge badge-info">{{ s.graduation_year }}</span></td>
+          <td>{{ s.eligible_count }}</td>
+          <td>{{ s.placed_count }}</td>
+          <td><strong class="text-primary">{{ s.placement_rate }}%</strong></td>
+          <td>{{ s.avg_package }} LPA</td>
+          <td><strong class="text-success">{{ s.highest_package }} LPA</strong></td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted">No cohort data available to compile reports.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header-section">
+  <div>
+    <h1>Placement Offers & Tracking</h1>
+    <p class="subtitle">Record institutional campus offers, verified packages (in LPA), and recruitment status.</p>
+  </div>
+  <div class="header-actions">
+    <button type="button" class="btn btn-primary" onclick="document.getElementById('offerFormCard').scrollIntoView({behavior: 'smooth'})">+ Record New Offer</button>
+  </div>
+</div>
+
+<div id="offerFormCard" class="card form-card">
+  <h3>Record Placement Offer</h3>
+  <p class="form-hint">Only verified eligible candidates appear in the dropdown to preserve statistical denominator integrity.</p>
+  <form method="POST" class="grid-form">
+    <div>
+      <label>Eligible Candidate</label>
+      <select name="student_id" required>
+        <option value="">-- Select Eligible Candidate --</option>
+        {% for s in students %}
+          {% set sid = s['student_id'] if s is mapping else s[0] %}
+          {% set roll = s['roll_number'] if s is mapping else s[1] %}
+          {% set name = s['full_name'] if s is mapping else s[2] %}
+          {% set dept = s['department'] if s is mapping else s[3] %}
+          <option value="{{ sid }}">{{ roll }} - {{ name }} ({{ dept }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>Hiring Organization</label>
+      <input type="text" name="company_name" placeholder="e.g. Google, Microsoft, TCS" required>
+    </div>
+    <div>
+      <label>Designation / Role</label>
+      <input type="text" name="role" placeholder="e.g. Software Engineer, Analyst" required>
+    </div>
+    <div>
+      <label>Offered Package (in LPA)</label>
+      <input type="number" step="0.01" min="0.5" max="200" name="package_lpa" placeholder="e.g. 18.50" required>
+    </div>
+    <div>
+      <label>Offer Date</label>
+      <input type="date" name="placement_date" required>
+    </div>
+    <div>
+      <label>Offer Acceptance Status</label>
+      <select name="status">
+        <option value="Offer Accepted">Offer Accepted</option>
+        <option value="Placed">Placed</option>
+        <option value="In Process">In Process</option>
+        <option value="Offer Rejected">Offer Rejected</option>
+      </select>
+    </div>
+    <div class="form-btn-col">
+      <button type="submit" class="btn btn-primary">+ Record Placement Offer</button>
+    </div>
+  </form>
+</div>
+
+<div class="card table-card">
+  <div class="card-header-flex" style="flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h3>Placement Records Registry</h3>
+      <p class="subtitle" style="font-size: 0.85rem; margin-top: 0.15rem;">Showing <span id="visibleOfferCount">{{ placements|length }}</span> of {{ placements|length }} total offers</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+      <input 
+        type="text" 
+        id="placementSearchInput" 
+        placeholder="🔍 Search company, role, student..." 
+        style="padding: 0.5rem 0.95rem; font-size: 0.875rem; border-radius: 9999px; border: 1.5px solid var(--border-color); width: 260px; outline: none;"
+        onkeyup="filterPlacementTable()"
+      >
+      <select id="statusFilterSelect" onchange="filterPlacementTable()" style="padding: 0.5rem 0.85rem; font-size: 0.875rem; border-radius: 9999px; border: 1.5px solid var(--border-color);">
+        <option value="">All Statuses</option>
+        <option value="Offer Accepted">Offer Accepted</option>
+        <option value="Placed">Placed</option>
+        <option value="In Process">In Process</option>
+        <option value="Offer Rejected">Offer Rejected</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table" id="placementsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Candidate</th>
+          <th>Department</th>
+          <th>Company</th>
+          <th>Designation</th>
+          <th>Package (LPA)</th>
+          <th>Offer Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in placements %}
+        {% set pid = p['placement_id'] if p is mapping else p[0] %}
+        {% set company = p['company_name'] if p is mapping else p[2] %}
+        {% set role = p['role'] if p is mapping else p[3] %}
+        {% set pkg = p['package_lpa'] if p is mapping else p[4] %}
+        {% set pdate = p['placement_date'] if p is mapping else p[5] %}
+        {% set st = p['status'] if p is mapping else p[6] %}
+        {% set roll = p['roll_number'] if p is mapping else p[8] %}
+        {% set name = p['full_name'] if p is mapping else p[9] %}
+        {% set dept = p['department'] if p is mapping else p[10] %}
+        <tr class="placement-row" data-status="{{ st }}" data-search="{{ company|lower }} {{ role|lower }} {{ name|lower }} {{ roll|lower }} {{ dept|lower }}">
+          <td>#{{ pid }}</td>
+          <td><strong>{{ name }}</strong> <br><small class="text-muted">{{ roll }}</small></td>
+          <td>{{ dept }}</td>
+          <td><span class="company-badge">{{ company }}</span></td>
+          <td>{{ role }}</td>
+          <td>
+            {% if pkg >= 15.0 %}
+              <strong style="background: var(--golden-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800;">
+                ⭐ {{ "%.2f"|format(pkg) }} LPA
+              </strong>
+            {% else %}
+              <strong class="text-primary">{{ "%.2f"|format(pkg) }} LPA</strong>
+            {% endif %}
+          </td>
+          <td>{{ pdate }}</td>
+          <td>
+            <span class="badge {{ 'badge-success' if st in ['Offer Accepted', 'Placed'] else ('badge-warning' if st == 'In Process' else 'badge-danger') }}">
+              {{ st }}
+            </span>
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('delete_placement', placement_id=pid) }}" onsubmit="return confirm('Remove offer #{{ pid }}?');">
+              <button type="submit" class="btn-delete">Remove</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="9" class="text-center text-muted" style="padding: 2rem;">No placement offers recorded yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function filterPlacementTable() {
+  const query = document.getElementById('placementSearchInput').value.toLowerCase().trim();
+  const statusFilter = document.getElementById('statusFilterSelect').value.toLowerCase();
+  const rows = document.querySelectorAll('.placement-row');
+  let visible = 0;
+
+  rows.forEach(row => {
+    const searchData = row.getAttribute('data-search') || '';
+    const status = (row.getAttribute('data-status') || '').toLowerCase();
+    const matchesQuery = !query || searchData.includes(query);
+    const matchesStatus = !statusFilter || status === statusFilter;
+
+    if (matchesQuery && matchesStatus) {
+      row.style.display = '';
+      visible++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  const countElem = document.getElementById('visibleOfferCount');
+  if (countElem) countElem.textContent = visible;
+}
+</script>
+{% endblock %}

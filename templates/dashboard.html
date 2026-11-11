@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header-section">
+  <div>
+    <h1>Executive Placement Dashboard</h1>
+    <p class="subtitle">Real-time aggregate statistical metrics computed with strict eligible-denominator verification.</p>
+  </div>
+  <div class="header-actions">
+    <a href="{{ url_for('students') }}" class="btn btn-outline"><span>🎓</span> Register Student</a>
+    <a href="{{ url_for('placements') }}" class="btn btn-primary"><span>💼</span> Record Offer</a>
+  </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+  <div class="card kpi">
+    <div class="kpi-header">
+      <span class="kpi-label">Placement Rate (Eligible)</span>
+      <span class="kpi-badge badge-primary">Standard</span>
+    </div>
+    <span class="kpi-value">{{ kpis.placement_rate }}%</span>
+    <span class="kpi-subtext"><strong>{{ kpis.placed_students }}</strong> placed out of <strong>{{ kpis.eligible_students }}</strong> eligible candidates</span>
+    <div style="margin-top: 0.85rem; background: #e2e8f0; height: 6px; border-radius: 9999px; overflow: hidden;">
+      <div style="background: linear-gradient(90deg, #3b82f6, #06b6d4); height: 100%; width: {{ kpis.placement_rate }}%; border-radius: 9999px;"></div>
+    </div>
+  </div>
+
+  <div class="card kpi">
+    <div class="kpi-header">
+      <span class="kpi-label">Average Compensation</span>
+      <span class="kpi-badge badge-info">Mean</span>
+    </div>
+    <span class="kpi-value">{{ kpis.avg_package }} <small>LPA</small></span>
+    <span class="kpi-subtext">Across <strong>{{ kpis.total_offers }}</strong> accepted offers</span>
+  </div>
+
+  <div class="card kpi">
+    <div class="kpi-header">
+      <span class="kpi-label">Median Package</span>
+      <span class="kpi-badge badge-success">Robust</span>
+    </div>
+    <span class="kpi-value">{{ kpis.median_package }} <small>LPA</small></span>
+    <span class="kpi-subtext">Protected against outlier skews</span>
+  </div>
+
+  <div class="card kpi">
+    <div class="kpi-header">
+      <span class="kpi-label">Highest Package</span>
+      <span class="kpi-badge badge-warning">Dream Offer</span>
+    </div>
+    <span class="kpi-value">{{ kpis.max_package }} <small>LPA</small></span>
+    <span class="kpi-subtext">Peak institutional offer recorded</span>
+  </div>
+</div>
+
+<!-- Analytical Visualizations -->
+<div class="charts-grid">
+  {% if charts.dept_chart %}
+  <div class="card chart-card">
+    <img src="{{ charts.dept_chart }}" alt="Placement Rate by Department">
+  </div>
+  {% endif %}
+
+  {% if charts.pkg_chart %}
+  <div class="card chart-card">
+    <img src="{{ charts.pkg_chart }}" alt="Salary Package Distribution">
+  </div>
+  {% endif %}
+</div>
+
+{% if charts.skill_chart %}
+<div class="charts-single">
+  <div class="card chart-card">
+    <img src="{{ charts.skill_chart }}" alt="Top In-Demand Skills">
+  </div>
+</div>
+{% endif %}
+
+<!-- Department Summary Cross-Tabulation -->
+<div class="card table-card">
+  <div class="card-header-flex">
+    <div>
+      <h3>Departmental Outcome Breakdown</h3>
+      <p class="subtitle" style="margin-top: 0.15rem; font-size: 0.85rem;">Disaggregated cohort performance metrics</p>
+    </div>
+    <a href="{{ url_for('reports') }}" class="btn-text">View Detailed Cohort Report →</a>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Department</th>
+          <th>Graduation Year</th>
+          <th>Eligible Pool</th>
+          <th>Placed Count</th>
+          <th>Placement Rate</th>
+          <th>Average Package</th>
+          <th>Highest Package</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in dept_stats %}
+        <tr>
+          <td><strong>{{ d.department }}</strong></td>
+          <td><span class="badge badge-info">{{ d.graduation_year }}</span></td>
+          <td>{{ d.eligible_count }}</td>
+          <td>{{ d.placed_count }}</td>
+          <td>
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <strong style="color: #2563eb; min-width: 45px;">{{ d.placement_rate }}%</strong>
+              <div style="flex: 1; min-width: 60px; background: #e2e8f0; height: 6px; border-radius: 9999px; overflow: hidden;">
+                <div style="background: linear-gradient(90deg, #3b82f6, #06b6d4); height: 100%; width: {{ d.placement_rate }}%; border-radius: 9999px;"></div>
+              </div>
+            </div>
+          </td>
+          <td>{{ d.avg_package }} LPA</td>
+          <td><strong style="color: #d97706;">{{ d.highest_package }} LPA</strong></td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted" style="padding: 2rem; text-align: center;">No student and placement records available yet. Please add data or run seeder.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
